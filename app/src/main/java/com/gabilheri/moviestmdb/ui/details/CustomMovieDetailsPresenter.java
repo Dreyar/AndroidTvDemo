@@ -1,0 +1,27 @@
+package com.gabilheri.moviestmdb.ui.details;
+
+import android.support.v17.leanback.widget.DetailsOverviewLogoPresenter;
+import android.support.v17.leanback.widget.FullWidthDetailsOverviewRowPresenter;
+import android.support.v17.leanback.widget.Presenter;
+import android.support.v17.leanback.widget.RowPresenter;
+import android.view.View;
+
+/**
+ * Created by Pampoukidis on 26/2/2018.
+ */
+public class CustomMovieDetailsPresenter extends FullWidthDetailsOverviewRowPresenter {
+
+    CustomMovieDetailsPresenter(Presenter detailsPresenter, DetailsOverviewLogoPresenter logoPresenter) {
+        super(detailsPresenter, logoPresenter);
+    }
+
+    @Override
+    protected void onBindRowViewHolder(RowPresenter.ViewHolder holder, Object item) {
+        super.onBindRowViewHolder(holder, item);
+        FullWidthDetailsOverviewRowPresenter.ViewHolder vh = (FullWidthDetailsOverviewRowPresenter.ViewHolder) holder;
+        View v = vh.getOverviewView();
+        v.setBackgroundColor(getBackgroundColor());
+        v.findViewById(android.support.v17.leanback.R.id.details_overview_actions_background)
+                .setBackgroundColor(getActionsBackgroundColor());
+    }
+}

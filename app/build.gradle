@@ -4,7 +4,7 @@ buildscript {
         google()
     }
     dependencies {
-         classpath 'me.tatarka:gradle-retrolambda:3.7.0'
+        classpath 'me.tatarka:gradle-retrolambda:3.7.0'
         classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.8.2'
     }
 }
@@ -108,6 +108,7 @@ dependencies {
 
     // Dependency Injection
     implementation 'com.google.dagger:dagger:2.14.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.14.1'
     compileOnly 'javax.annotation:jsr250-api:1.0'
 
