@@ -4,6 +4,7 @@ package com.gabilheri.moviestmdb.ui.details;
 import android.app.Fragment;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v17.leanback.app.DetailsFragment;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
 import android.support.v17.leanback.widget.ClassPresenterSelector;
@@ -11,9 +12,9 @@ import android.support.v17.leanback.widget.DetailsOverviewLogoPresenter;
 import android.support.v17.leanback.widget.DetailsOverviewRow;
 import android.support.v17.leanback.widget.FullWidthDetailsOverviewRowPresenter;
 import android.support.v17.leanback.widget.FullWidthDetailsOverviewSharedElementHelper;
+import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.graphics.Palette;
 
 import com.bumptech.glide.Glide;
@@ -26,12 +27,14 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
 import com.gabilheri.moviestmdb.App;
 import com.gabilheri.moviestmdb.Config;
-import com.gabilheri.moviestmdb.R;
 import com.gabilheri.moviestmdb.dagger.modules.HttpClientModule;
 import com.gabilheri.moviestmdb.data.Api.TheMovieDbAPI;
+import com.gabilheri.moviestmdb.data.models.CreditsResponse;
 import com.gabilheri.moviestmdb.data.models.Movie;
 import com.gabilheri.moviestmdb.data.models.MovieDetails;
+import com.gabilheri.moviestmdb.data.models.MovieResponse;
 import com.gabilheri.moviestmdb.data.models.PaletteColors;
+import com.gabilheri.moviestmdb.ui.movies.MoviePresenter;
 
 import javax.inject.Inject;
 
@@ -54,6 +57,10 @@ public class MovieDetailsFragment extends DetailsFragment implements Palette.Pal
     private ArrayObjectAdapter mAdapter;
     private FullWidthDetailsOverviewRowPresenter mFullWidthMovieDetailsPresenter;
     private DetailsOverviewRow mDetailsOverviewRow;
+
+    private ArrayObjectAdapter mCastAdapter = new ArrayObjectAdapter(new PersonPresenter());
+    private ArrayObjectAdapter mRecommendationsAdapter = new ArrayObjectAdapter(new MoviePresenter());
+
 
     public MovieDetailsFragment() {
         // Required empty public constructor
@@ -82,8 +89,47 @@ public class MovieDetailsFragment extends DetailsFragment implements Palette.Pal
 
         setUpDetailsOverviewRow();
 
+        setupCastMembers();
+
+        setupRecommendationsRow();
+
     }
 
+    private void setupRecommendationsRow() {
+        mAdapter.add(new ListRow(new HeaderItem(2, "Recommendations"), mRecommendationsAdapter));
+        fetchRecommendations();
+    }
+
+    private void fetchRecommendations() {
+        mDbAPI.getRecommendations(movie.getId(), Config.API_KEY_URL_V3)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::bindRecommendations, e -> {
+                    Timber.e(e, "Error fetching recommendations: %s", e.getMessage());
+                });
+    }
+
+    private void bindRecommendations(MovieResponse response) {
+        mRecommendationsAdapter.addAll(0, response.getResults());
+    }
+
+    private void setupCastMembers() {
+        mAdapter.add(new ListRow(new HeaderItem(0, "Cast"), mCastAdapter));
+        fetchCastMembers();
+    }
+
+    private void fetchCastMembers() {
+        mDbAPI.getCredits(movie.getId(), Config.API_KEY_URL_V3)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::bindCastMembers, e -> {
+                    Timber.e(e, "Error fetching data: %s", e.getMessage());
+                });
+    }
+
+    private void bindCastMembers(CreditsResponse response) {
+        mCastAdapter.addAll(0, response.getCast());
+    }
 
     private void setUpDetailsOverviewRow() {
         mDetailsOverviewRow = new DetailsOverviewRow(new MovieDetails());
@@ -164,7 +210,7 @@ public class MovieDetailsFragment extends DetailsFragment implements Palette.Pal
     }
 
     @Override
-    public void onGenerated(Palette palette) {
+    public void onGenerated(@NonNull Palette palette) {
         PaletteColors colors = PaletteUtils.getPaletteColors(palette);
         mFullWidthMovieDetailsPresenter.setActionsBackgroundColor(colors.getStatusBarColor());
         mFullWidthMovieDetailsPresenter.setBackgroundColor(colors.getToolbarBackgroundColor());
